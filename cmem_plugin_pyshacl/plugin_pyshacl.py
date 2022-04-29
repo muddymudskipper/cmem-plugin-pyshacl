@@ -207,10 +207,12 @@ class ShaclValidation(WorkflowPlugin):
         self.log.info("Starting SHACL validation.")
         conforms, validation_graph, results_text = validate(data_graph, shacl_graph=shacl_graph)
         utctime = str(datetime.fromtimestamp(int(time()))).replace(" ", "T") + "Z"
-        self.log.info(f"Config length: {len(self.config.get())}")
         validation_graph = self.post_process(validation_graph, utctime)
         if self.generate_graph:
             self.log.info("Posting SHACL validation graph.")
             self.post_graph(validation_graph)
-        return self.make_entities(validation_graph, utctime)
+        self.log.info("Creating entities.")
+        entities = self.make_entities(validation_graph, utctime)
+        self.log.info(f"Config length: {len(self.config.get())}")
+        return entities
 
