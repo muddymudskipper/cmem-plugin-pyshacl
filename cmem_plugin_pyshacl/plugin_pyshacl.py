@@ -6,7 +6,7 @@ from time import time
 from datetime import datetime
 from uuid import uuid4
 from cmem.cmempy.dp.proxy.graph import get, post
-from cmem.cmempy.rdflib.cmem_store import CMEMStore
+#from cmem.cmempy.rdflib.cmem_store import CMEMStore
 from cmem_plugin_base.dataintegration.description import Plugin, PluginParameter
 from cmem_plugin_base.dataintegration.types import BoolParameterType, StringParameterType
 from cmem_plugin_base.dataintegration.plugins import WorkflowPlugin
@@ -45,28 +45,27 @@ from cmem_plugin_base.dataintegration.entity import (
             name="generate_graph",
             label="Generate validation graph",
             description="Generate validation graph",
-            default_value=False
+            default_value="0"
         ),
         PluginParameter(
             param_type = BoolParameterType(),
             name="output_values",
             label="Output values",
             description="Output values",
-            default_value=False
+            default_value="1"
         ),
         PluginParameter(
             param_type = BoolParameterType(),
             name="use_cmem_store",
             label="Use CMEM store",
             description="Use CMEM store",
-            default_value=False
+            default_value="0"
         )
     ]
 )
 
 
 class ShaclValidation(WorkflowPlugin):
-    """Example Workflow Plugin: Random Values"""
 
     def __init__(
         self,
@@ -96,7 +95,7 @@ class ShaclValidation(WorkflowPlugin):
             else f"https://eccenca.com/cmem-plugin-pyshacl/graph/{uuid4()}/"
         self.generate_graph = generate_graph
         self.output_values = output_values
-        self.use_cmem_store = False  # use_cmem_store
+        self.use_cmem_store = use_cmem_store
 
     def post_process(self, validation_graph, utctime):
         # replace blank nodes and add prov information
@@ -148,6 +147,8 @@ class ShaclValidation(WorkflowPlugin):
         return v
 
     def make_entities(self, g, utctime):
+        if not self.output_values:
+            return Entities(entities=[], schema=EntitySchema(type_uri="", paths=[EntityPath(path="path")]))
         shp = [
             "focusNode",
             "resultPath",
@@ -190,9 +191,9 @@ class ShaclValidation(WorkflowPlugin):
         return Entities(entities=entities, schema=schema)
 
     def get_graph(self, i):
-        if self.use_cmem_store:
-        # if False:
-            g = Graph(store=CMEMStore(), identifier=i)
+        #if self.use_cmem_store:
+        #    g = Graph(store=CMEMStore(), identifier=i)
+        if False: pass
         else:
             g = Graph()
             g.parse(data=get(i).text, format="nt")
@@ -211,6 +212,5 @@ class ShaclValidation(WorkflowPlugin):
         if self.generate_graph:
             self.log.info("Posting SHACL validation graph.")
             self.post_graph(validation_graph)
-        if self.output_values:
-            self.log.info("Creating entities.")
-            return self.make_entities(validation_graph, utctime)
+        return self.make_entities(validation_graph, utctime)
+
